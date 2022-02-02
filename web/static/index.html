@@ -113,8 +113,8 @@
           </div>
         </mugen-scroll>
         
-        <div v-if="selectedImage" @click="selectedImage = null">
-          <div class="overlay"></div>
+        <div v-if="selectedImage">
+          <div class="overlay" @click="selectedImage = null"></div>
           <div class="modal">
             <img :src="selectedImage.url" style="max-width: 90vw; max-height: 90vh"/>
             <div class="author">
