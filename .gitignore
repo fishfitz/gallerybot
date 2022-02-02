@@ -89,5 +89,4 @@ sw.*
 # Vim swap files
 *.swp
 
-db_channels/
-db_messages/
+db_*

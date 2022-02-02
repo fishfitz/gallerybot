@@ -17,7 +17,7 @@ const fetchMessages = (channel, lastFetch, lastMessage) => {
       catch(e) {}
       if (messages.every(m => m.createdAt > lastFetch) && messages.size === pageSize) await fetchMessages(channel, lastFetch, messages.last());
       resolve();
-    }, 10 * 60 * 1000);
+    }, 1000);
   });
 };
 
@@ -26,10 +26,13 @@ module.exports = (client) => {
     const channels = (await dbChannels.allDocs({ include_docs: true })).rows.map(d => d.doc);
     for (const channel of channels) {
       await fetchMessages(await client.channels.fetch(channel._id), new Date(channel.lastFetch));
-      await dbChannels.put({
-        ...channel,
-        lastFetch: new Date()
-      });
+      try {
+        await dbChannels.put({
+          ...channel,
+          lastFetch: new Date()
+        });
+      }
+      catch(e) {}
     }
-  }, 1000 * 10);
+  }, 1000 * 60 * 10);
 };

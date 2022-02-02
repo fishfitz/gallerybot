@@ -3,22 +3,134 @@
   <head>
     <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/vue-masonry-css"></script>
+    <script src="https://unpkg.com/vue-mugen-scroll/dist/vue-mugen-scroll.min.js"></script>
+
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Raleway&display=swap');
+
+      body {
+        font-size: 0;
+        margin: 0;
+        background-color: #36393F;
+        font-family: 'Raleway', sans-serif;
+        text-align: center;
+        color: white;
+      }
+
+      .loader {
+        margin-top: 40px;
+        display: inline-block;
+        border: 2px solid white;
+        border-top: 2px solid #FB5E3D;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 2s linear infinite;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      .modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+
+      .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        backdrop-filter: brightness(30%) blur(2px);
+      }
+
+      .author {
+        font-size: 10pt;
+      }
+
+      h1 {
+        font-size: 20pt;
+      }
+
+      hr {
+        height: 2px;
+        width: 20px;
+        margin-bottom: 20px;
+        border: none;
+        background-color: white;
+        border-radius: 2px;
+        opacity: .5;
+      }
+    </style>
   </head>
   <body>
     <div id="app">
-      <img v-for="image in images" :src="image.url"/>
+      <h1>
+        
+        #{{ channel.name }} <br/>
+        <small> {{ channel.messagesCount }} image{{ channel.messagesCount > 1 ? 's' : '' }} </small>
+      </h1>
+
+      <hr/>
+
+      <masonry :cols="{ default: 10, 1300: 8, 1000: 6, 700: 4, 400: 2 }">
+        <a v-for="image in images" @click="selectedImage = image">
+          <img :src="image.url" style="max-width: 100%"/>
+        </a>
+      </masonry>
+      
+      <mugen-scroll v-if="!end" :handler="fetchData" :should-handle="!loading">
+        <div style="text-align: center;">
+          <div class="loader"></div>
+        </div>
+      </mugen-scroll>
+      
+      <div v-if="selectedImage" @click="selectedImage = null">
+        <div class="overlay"></div>
+        <div class="modal">
+          <img :src="selectedImage.url" style="max-width: 90vw; max-height: 90vh"/>
+          <div class="author">
+            Posted by: {{ selectedImage.author }}
+            <br/>
+            <small> {{ new Date(selectedImage.createdAt).toLocaleDateString() }} </small>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <script>
-      new Vue({
-        el: '#app',
-        data: {
-          images: []
-        },
-        async created() {
-          this.images = (await axios.get(`/messages?channel=${new URLSearchParams(window.location.search).get('c')}`)).data;
-        }
-      });
+    <script defer>
+      (async () => {
+        const channel = new URLSearchParams(window.location.search).get('c');
+        const chanData = (await axios.get(`/channel?channel=${channel}`)).data;
+
+        new Vue({
+          el: '#app',
+          data: {
+            channel: chanData,
+            images: [],
+            loading: false,
+            lastDate: new Date(),
+            end: false,
+            selectedImage: null
+          },
+          methods: {
+            async fetchData() {
+              this.loading = true;
+              this.lastDate = new Date(this.images[this.images.length - 1]?.createdAt || new Date()).toISOString();
+              const messages = (await axios.get(`/messages?channel=${channel}&before=${this.lastDate}`)).data;
+              this.images.push(...messages);
+              this.end = messages.length < 50;
+              this.loading = false;
+            }
+          }
+        });
+      })();
     </script>
   </body>
 </html>

@@ -27,12 +27,15 @@ module.exports = async (channel) => {
   }
   catch(e) {}
 
-  await dbChannels.put({
-    ...channelData,
-    _id: channel.id,
-    name: channel.name,
-    lastFetch: new Date()
-  });
+  try {
+    await dbChannels.put({
+      ...channelData,
+      _id: channel.id,
+      name: channel.name,
+      lastFetch: new Date()
+    });
+  }
+  catch(e) {}
   
   fetchMessagesBackward(channel);
 };
