@@ -17,7 +17,7 @@ app.get('/channel', async (req, res) => {
     const messagesCount = (await dbMessages.allDocs({
       startkey: req.query.channel,
       endkey: `${req.query.channel}\ufff0`
-    })).total_rows;
+    })).rows.length;
     res.json({
       ...channel,
       messagesCount

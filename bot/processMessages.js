@@ -3,7 +3,7 @@ module.exports = (messages, channel) => {
     .map(m => {
       return [
         ...m.attachments
-          .filter(a => a.contentType.indexOf('image/') !== -1)
+          .filter(a => (a.contentType && a.contentType.indexOf('image/') !== -1) || a.proxyURL.search(/\.(jpg|jpeg|png|gif|webp)$/) !== -1)
           .map(a => ({
             _id: `${channel.id}_${a.proxyURL}`,
             message: m.id,

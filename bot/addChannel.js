@@ -6,6 +6,7 @@ const dbMessages = new PouchDB('db_messages');
 const pageSize = 100;
 const fetchMessagesBackward = (channel, lastMessage) => {
   setTimeout(async () => {
+    console.info('Fetching for', channel.id);
     const messages = await channel.messages.fetch({
       limit: pageSize,
       before: lastMessage?.id
@@ -13,7 +14,9 @@ const fetchMessagesBackward = (channel, lastMessage) => {
     try {
       await dbMessages.bulkDocs(processMessages(messages, channel));
     }
-    catch(e) {}
+    catch(e) {
+      console.error('error when inserting messages', e);
+    }
     if (messages.size === pageSize) fetchMessagesBackward(channel, messages.last());
   }, 1000);
 };
@@ -23,7 +26,9 @@ module.exports = async (channel) => {
   try {
     channelData = await dbChannels.get(channel.id);
   }
-  catch(e) {}
+  catch(e) {
+    console.error('error when creating channel', e);
+  }
 
   try {
     await dbChannels.put({
@@ -33,7 +38,9 @@ module.exports = async (channel) => {
       lastFetch: new Date()
     });
   }
-  catch(e) {}
+  catch(e) {
+    console.error('error when upserting channel', e);
+  }
   
   fetchMessagesBackward(channel);
 };
