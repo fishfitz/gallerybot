@@ -3,11 +3,15 @@
   <head>
     <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <script src="https://unpkg.com/vue-masonry-css"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-waterfall@1.0.6/lib/vue-waterfall.min.js"></script>
     <script src="https://unpkg.com/vue-mugen-scroll/dist/vue-mugen-scroll.min.js"></script>
 
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Raleway&display=swap');
+
+      html {
+        overflow-y: scroll;
+      }
 
       body {
         font-size: 0;
@@ -15,7 +19,11 @@
         background-color: #36393F;
         font-family: 'Raleway', sans-serif;
         text-align: center;
-        color: white;
+        color: white!important;
+      }
+
+      a {
+        color: white!important;
       }
 
       .loader {
@@ -69,41 +77,59 @@
         border-radius: 2px;
         opacity: .5;
       }
+
+      .thumbnail {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        max-width: 100%;
+        cursor: pointer;
+      }
     </style>
   </head>
   <body>
     <div id="app">
-      <h1>
+      <template v-if="channel?.name">
+        <h1>
+          
+          #{{ channel.name }} <br/>
+          <small> {{ channel.messagesCount }} image{{ channel.messagesCount > 1 ? 's' : '' }} </small>
+
+        </h1>
+
+        <hr/>
+        <waterfall :line-gap="colWidth" :watch="imagesWithThumbnail" align="center">
+          <waterfall-slot v-for="(image, index) in imagesWithThumbnail" :width="image.width" :height="image.height" :order="index">
+            <a @click="selectedImage = image">
+              <img :src="image.thumbnail" class="thumbnail" @error="images.splice(index, 1)"/>
+            </a>
+          </waterfall-slot>
+        </waterfall>
         
-        #{{ channel.name }} <br/>
-        <small> {{ channel.messagesCount }} image{{ channel.messagesCount > 1 ? 's' : '' }} </small>
-      </h1>
-
-      <hr/>
-
-      <masonry :cols="{ default: 10, 1300: 8, 1000: 6, 700: 4, 400: 2 }">
-        <a v-for="image in images" @click="selectedImage = image">
-          <img :src="image.url" style="max-width: 100%; cursor: pointer;"/>
-        </a>
-      </masonry>
-      
-      <mugen-scroll v-if="!end" :handler="fetchData" :should-handle="!loading">
-        <div style="text-align: center;">
-          <div class="loader"></div>
-        </div>
-      </mugen-scroll>
-      
-      <div v-if="selectedImage" @click="selectedImage = null">
-        <div class="overlay"></div>
-        <div class="modal">
-          <img :src="selectedImage.url" style="max-width: 90vw; max-height: 90vh"/>
-          <div class="author">
-            Posted by: {{ selectedImage.author }}
-            <br/>
-            <small> {{ new Date(selectedImage.createdAt).toLocaleDateString() }} </small>
+        <mugen-scroll v-if="!end" :handler="fetchData" :should-handle="!loading">
+          <div style="text-align: center;">
+            <div class="loader"></div>
+          </div>
+        </mugen-scroll>
+        
+        <div v-if="selectedImage" @click="selectedImage = null">
+          <div class="overlay"></div>
+          <div class="modal">
+            <img :src="selectedImage.url" style="max-width: 90vw; max-height: 90vh"/>
+            <div class="author">
+              Posted by: {{ selectedImage.author }}
+              <br/>
+              <small> 
+                {{ new Date(selectedImage.createdAt).toLocaleDateString() }}
+                <br/>
+                <a v-if="selectedImage.reference" :href="selectedImage.reference" target="_blank"> {{ selectedImage.reference }} </a>
+              </small>
+            </div>
           </div>
         </div>
-      </div>
+      </template>
+      <template v-else> <h1 class="thumbnail" style="cursor: auto;"> 🐠 Sadly, this gallery does not exist (yet). 🐠 </h1> </template>
     </div>
 
     <script defer>
@@ -113,13 +139,35 @@
 
         new Vue({
           el: '#app',
+          components: { ...Waterfall },
           data: {
             channel: chanData,
             images: [],
             loading: false,
             lastDate: new Date(),
             end: false,
-            selectedImage: null
+            selectedImage: null,
+            windowWidth: document.body.scrollWidth
+          },
+          computed: {
+            colWidth() {
+              let factor;
+              if (this.windowWidth > 1300) factor = 9;
+              else if (this.windowWidth > 1000) factor = 7;
+              else if (this.windowWidth > 700) factor = 5;
+              else if (this.windowWidth > 400) factor = 3;
+              else factor = 2;
+              return (this.windowWidth / factor);
+            },
+            imagesWithThumbnail() {
+              return this.images
+                .map((m) => ({
+                  ...m,
+                  height: Math.min(Math.floor(m.ratio * this.colWidth), m.height),
+                  width: Math.min(Math.floor(this.colWidth), m.width),
+                  thumbnail: `${m.url}?width=${Math.floor(this.colWidth)}&height=${Math.floor(m.ratio * this.colWidth)}`
+                }));
+            }
           },
           methods: {
             async fetchData() {
@@ -129,7 +177,16 @@
               this.images.push(...messages);
               this.end = messages.length < 50;
               this.loading = false;
+            },
+            resize() {
+              this.windowWidth = document.body.scrollWidth;
             }
+          },
+          created() {
+            window.addEventListener("resize", this.resize);
+          },
+          destroyed() {
+            window.removeEventListener("resize", this.resize);
           }
         });
       })();

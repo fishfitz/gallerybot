@@ -34,5 +34,7 @@ module.exports = (client) => {
       }
       catch(e) {}
     }
+    dbChannels.compact();
+    dbMessages.compact();
   }, 1000 * 60 * 10);
 };

@@ -13,9 +13,7 @@ const fetchMessagesBackward = (channel, lastMessage) => {
     try {
       await dbMessages.bulkDocs(processMessages(messages, channel));
     }
-    catch(e) {
-      // silence
-    }
+    catch(e) {}
     if (messages.size === pageSize) fetchMessagesBackward(channel, messages.last());
   }, 1000);
 };

@@ -9,6 +9,9 @@ module.exports = (messages, channel) => {
             message: m.id,
             channel: channel.id,
             url: a.proxyURL,
+            height: a.height,
+            width: a.width,
+            ratio: a.height / a.width,
             author: m.author.username,
             createdAt: m.createdAt
           })),
@@ -18,9 +21,13 @@ module.exports = (messages, channel) => {
             _id: `${channel.id}_${e.image.url.replace(/jpg:large$/, 'jpg')}`,
             message: m.id,
             channel: channel.id,
-            url: e.image.url.replace(/jpg:large$/, 'jpg'),
+            url: e.image.proxyURL?.replace(/jpg:large$/, 'jpg'),
+            height: e.image.height,
+            width: e.image.width,
+            ratio: e.image.height / e.image.width,
             author: m.author.username,
-            createdAt: m.createdAt
+            createdAt: m.createdAt,
+            reference: e.url
           }))
       ];
     })

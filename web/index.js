@@ -12,15 +12,20 @@ dbMessages.createIndex({
 app.use('/', express.static(__dirname + '/static'));
 
 app.get('/channel', async (req, res) => {
-  const channel = (await dbChannels.get(req.query.channel));
-  const messagesCount = (await dbMessages.allDocs({
-    startkey: req.query.channel,
-    endkey: `${req.query.channel}\ufff0`
-  })).total_rows;
-  res.json({
-    ...channel,
-    messagesCount
-  });
+  try {
+    const channel = (await dbChannels.get(req.query.channel));
+    const messagesCount = (await dbMessages.allDocs({
+      startkey: req.query.channel,
+      endkey: `${req.query.channel}\ufff0`
+    })).total_rows;
+    res.json({
+      ...channel,
+      messagesCount
+    });
+  }
+  catch(error) {
+    res.json({ error });
+  }
 });
 
 app.get('/messages', async (req, res) => {
