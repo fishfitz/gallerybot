@@ -1,0 +1,16 @@
+{
+  "name": "gallerybot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "@discordjs/builders": "^0.12.0",
+    "@discordjs/rest": "^0.3.0",
+    "discord-api-types": "^0.26.1",
+    "discord.js": "^13.6.0",
+    "dotenv": "^15.0.0",
+    "express": "^4.17.2",
+    "pouchdb": "^7.2.2",
+    "pouchdb-find": "^7.2.2"
+  }
+}
