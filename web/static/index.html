@@ -35,6 +35,7 @@
       }
 
       .modal {
+        cursor: pointer;
         position: fixed;
         top: 50%;
         left: 50%;
@@ -42,6 +43,7 @@
       }
 
       .overlay {
+        cursor: pointer;
         position: fixed;
         top: 0;
         left: 0;
@@ -81,7 +83,7 @@
 
       <masonry :cols="{ default: 10, 1300: 8, 1000: 6, 700: 4, 400: 2 }">
         <a v-for="image in images" @click="selectedImage = image">
-          <img :src="image.url" style="max-width: 100%"/>
+          <img :src="image.url" style="max-width: 100%; cursor: pointer;"/>
         </a>
       </masonry>
       
