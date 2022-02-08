@@ -94,7 +94,7 @@
         <h1>
           
           #{{ channel.name }} <br/>
-          <small> {{ channel.messagesCount }} image{{ channel.messagesCount > 1 ? 's' : '' }} </small>
+          <small> {{ channel.messages_count }} image{{ channel.messagesCount > 1 ? 's' : '' }} </small>
 
         </h1>
 
@@ -121,7 +121,7 @@
               Posted by: {{ selectedImage.author }}
               <br/>
               <small> 
-                {{ new Date(selectedImage.createdAt).toLocaleDateString() }}
+                {{ new Date(selectedImage.created_at).toLocaleDateString() }}
                 <br/>
                 <a v-if="selectedImage.reference" :href="selectedImage.reference" target="_blank"> {{ selectedImage.reference }} </a>
               </small>
@@ -144,7 +144,7 @@
             channel: chanData,
             images: [],
             loading: false,
-            lastDate: new Date(),
+            page: 1,
             end: false,
             selectedImage: null,
             windowWidth: document.body.scrollWidth
@@ -172,8 +172,7 @@
           methods: {
             async fetchData() {
               this.loading = true;
-              this.lastDate = new Date(this.images[this.images.length - 1]?.createdAt || new Date()).toISOString();
-              const messages = (await axios.get(`/messages?channel=${channel}&before=${this.lastDate}`)).data;
+              const messages = (await axios.get(`/messages?channel=${channel}&page=${this.page++}`)).data;
               this.images.push(...messages);
               this.end = messages.length < 50;
               this.loading = false;
