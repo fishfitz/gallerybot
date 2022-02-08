@@ -7,15 +7,15 @@ const pageSize = 50;
 const fetchMessages = (channel, lastFetch, lastMessage) => {
   return new Promise(async (resolve) => {
     setTimeout(async () => {
-      const messages = await channel.messages.fetch({ 
-        limit: pageSize,
-        before: lastMessage?.id
-      });
       try {
+        const messages = await channel.messages.fetch({ 
+          limit: pageSize,
+          before: lastMessage?.id
+        });
         await dbMessages.bulkDocs(processMessages(messages, channel));
+        if (messages.every(m => m.createdAt > lastFetch) && messages.size === pageSize) await fetchMessages(channel, lastFetch, messages.last());
       }
       catch(e) {}
-      if (messages.every(m => m.createdAt > lastFetch) && messages.size === pageSize) await fetchMessages(channel, lastFetch, messages.last());
       resolve();
     }, 1000);
   });
@@ -24,6 +24,7 @@ const fetchMessages = (channel, lastFetch, lastMessage) => {
 module.exports = (client) => {
   setInterval(async () => {
     const channels = (await dbChannels.allDocs({ include_docs: true })).rows.map(d => d.doc);
+    console.log('registered channels:', channels);
     for (const channel of channels) {
       await fetchMessages(await client.channels.fetch(channel._id), new Date(channel.lastFetch));
       try {
@@ -36,5 +37,5 @@ module.exports = (client) => {
     }
     dbChannels.compact();
     dbMessages.compact();
-  }, 1000 * 60 * 10);
+  }, 60 * 1000 * 10);
 };
