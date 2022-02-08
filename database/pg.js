@@ -1,5 +1,5 @@
 const knex = require('knex')({
-  client: 'pg-native',
+  client: 'pg',
   connection: {
     host : process.env.DB_HOST,
     port : process.env.DB_PORT,
