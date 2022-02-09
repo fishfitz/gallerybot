@@ -36,7 +36,6 @@ module.exports = (client) => {
         await pg('channels')
           .insert({
             ...channel,
-            created_at: new Date(),
             last_fetch: new Date()
           })
           .onConflict('id')

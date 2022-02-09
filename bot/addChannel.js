@@ -26,7 +26,8 @@ module.exports = async (channel) => {
     .insert({
       id: channel.id,
       name: channel.name,
-      last_fetch: new Date()
+      last_fetch: new Date(),
+      created_at: new Date()
     })
     .onConflict('id')
     .merge();  
