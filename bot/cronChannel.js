@@ -11,10 +11,13 @@ const fetchMessages = (channel, lastFetch, lastMessage) => {
           before: lastMessage?.id
         });
         
-        await pg('messages')
-          .insert(processMessages(messages, channel))
-          .onConflict('id')
-          .merge();
+        const formattedMessages = processMessages(messages, channel);
+        if (formattedMessages.length) {
+          await pg('messages')
+            .insert(formattedMessages)
+            .onConflict('id')
+            .merge();
+        }
         
         if (messages.every(m => m.createdAt > lastFetch) && messages.size === pageSize) await fetchMessages(channel, lastFetch, messages.last());
       }

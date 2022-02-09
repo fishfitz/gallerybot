@@ -9,10 +9,13 @@ const fetchMessagesBackward = (channel, lastMessage) => {
       before: lastMessage?.id
     });
     
-    await pg('messages')
-      .insert(processMessages(messages, channel))
-      .onConflict('id')
-      .merge();
+    const formattedMessages = processMessages(messages, channel);
+    if (formattedMessages.length) {
+      await pg('messages')
+        .insert(formattedMessages)
+        .onConflict('id')
+        .merge();
+    }
     
       if (messages.size === pageSize) fetchMessagesBackward(channel, messages.last());
   }, 1000);
