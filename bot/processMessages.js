@@ -31,5 +31,6 @@ module.exports = (messages, channel) => {
           }))
       ];
     })
-    .flat();
+    .flat()
+    .filter((m, i, a) => a.indexOf(m) === i);
 };
